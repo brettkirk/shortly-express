@@ -29,6 +29,12 @@ app.get('/create',
   res.render('index');
 });
 
+app.get('/signup',
+(req, res) => {
+  console.log('!!!!!!!!!!!!!');
+  res.render('signup');
+});
+
 app.get('/links', 
 (req, res, next) => {
   models.Links.getAll()
@@ -85,34 +91,21 @@ app.post('/signup', (req, res, next) => {
   var password = req.body.password;
 
   //check if user already exists
-  console.log('*********');
-
-  var userPresent = false;
-  console.log('*********');
-  if ( userPresent ) {
-    //redirect to signup page
-    app.get('/', 
-    (req, res) => {
-      res.render('signup');
-    });
-  //if user does NOT already exist
-  } else {  
-    //add to database 
-    var salt = utils.createRandom32String();
-    password = utils.createHash(password, salt);
-
-    models.Users.create({username: username}, {password: password}, {salt: salt});
-
-    if (models.Users.get({username: username})) {
-      console.log(true);
+  models.Users.get({username: username})
+  .then(results => {
+    if (results) {
+      results = JSON.stringify(results);
+      results = JSON.parse(results);
+      res.redirect('/signup');
     } else {
-      console.log(false);
-    }
-    //RAB// remember to send beeotch
-    res.send();
-    
-  }
+      var salt = utils.createRandom32String();
+      password = utils.createHash(password, salt);
 
+      models.Users.create({username: username, password: password, salt: salt});
+      res.redirect('/');
+    }
+    res.send();    
+  });
 });
 
 
