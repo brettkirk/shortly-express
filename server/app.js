@@ -91,23 +91,73 @@ app.post('/signup', (req, res, next) => {
   var password = req.body.password;
 
   //check if user already exists
+  // models.Users.get({ username: username })
+  // .then(results => {
+  //   if (results) {
+  //     console.log('oh hey');
+  //     results = JSON.stringify(results);
+  //     results = JSON.parse(results);
+  //     res.redirect('/signup');
+  //   } else {
+  //     models.Users.create(username, password);
+  //     models.Users.get({ username: username })
+  //     .then(results => {
+  //       if (results) {
+  //         results = JSON.stringify(results);
+  //         results = JSON.parse(results);
+  //         console.log(results);
+  //       }
+  //     });
+  //     res.redirect('/');
+  //   }
+  //   res.send();
+  // });
+
+  models.Users.get({ username: username })
+  .then(results => {
+    if (results) {
+      //rowdatapacket string/parsed
+      results = JSON.stringify(results);
+      results = JSON.parse(results);
+      res.redirect('/signup');
+    } else {
+      models.Users.create({username, password});
+      models.Users.get({ username: username })
+      .then(results => {
+        if (results) {
+          //rowdatapacket string/parsed
+          results = JSON.stringify(results);
+          results = JSON.parse(results);
+        }
+      });
+      res.redirect('/');
+    }
+      //
+    res.send();    
+    
+  });
+});
+
+app.post('/login', (req, res, next) => {
+  var username = req.body.username;
+  var password = req.body.password;
   models.Users.get({username: username})
   .then(results => {
     if (results) {
       results = JSON.stringify(results);
       results = JSON.parse(results);
-      res.redirect('/signup');
+      password = utils.createHash(password, results.salt);
+      if (password === results.password) {
+        res.redirect('/');
+      } else {
+        res.redirect('/login');
+      }
     } else {
-      var salt = utils.createRandom32String();
-      password = utils.createHash(password, salt);
-
-      models.Users.create({username: username, password: password, salt: salt});
-      res.redirect('/');
+      res.redirect('/login');
     }
-    res.send();    
+    res.send();
   });
 });
-
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
