@@ -83,13 +83,36 @@ app.post('/links',
 app.post('/signup', (req, res, next) => {
   var username = req.body.username;
   var password = req.body.password;
-  var salt = utils.createRandom32String();
-  password = utils.createHash(password, salt);
 
-  //RAB// Why async?
-  //RAB?? mysql quotes!
-  db.queryAsync(`INSERT INTO users (username, password, salt) VALUES ('${username}','${password}', '${salt}')`)
-  .then( () => res.send('okay'));
+  //check if user already exists
+  console.log('*********');
+
+  var userPresent = false;
+  console.log('*********');
+  if ( userPresent ) {
+    //redirect to signup page
+    app.get('/', 
+    (req, res) => {
+      res.render('signup');
+    });
+  //if user does NOT already exist
+  } else {  
+    //add to database 
+    var salt = utils.createRandom32String();
+    password = utils.createHash(password, salt);
+
+    models.Users.create({username: username}, {password: password}, {salt: salt});
+
+    if (models.Users.get({username: username})) {
+      console.log(true);
+    } else {
+      console.log(false);
+    }
+    //RAB// remember to send beeotch
+    res.send();
+    
+  }
+
 });
 
 
